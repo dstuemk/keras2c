@@ -1,3 +1,5 @@
+#pragma once
+
 #include "k2c_activations.c"
 #include "k2c_convolution_layers.c"
 #include "k2c_core_layers.c"

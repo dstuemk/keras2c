@@ -49,7 +49,6 @@ def model2c(model, function_name, dtype, malloc=False, verbose=True):
     includes = '#include <math.h> \n '
     includes += '#include <string.h> \n'
     includes += '#include "./include/k2c_declarations.h" \n'
-    includes += '#include "./include/k2c_definitions.h" \n'
     includes += '\n \n'
 
     shapes_arr_literal,num_inputs = get_input_shapes(model)
@@ -96,6 +95,7 @@ def model2c(model, function_name, dtype, malloc=False, verbose=True):
         header.write('#pragma once \n')
         header.write(f"typedef {dtype} k2c_float; \n")
         header.write('#include "./include/k2c_declarations.h" \n')
+        header.write('#include "./include/k2c_definitions.h" \n')
         header.write(const_vars)
         header.write(function_signature + '; \n')
         header.write(init_sig + '; \n')
