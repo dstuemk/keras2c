@@ -37,6 +37,12 @@ keras2c can be used from the command line:
                          saved to .csv files that will be loaded at runtime
       -t , --num_tests   Number of tests to generate. Default is 10
 
+Command line usage:
+
+.. code-block:: shell
+
+    python -m keras2c --dtype double model.h5 example
+    gcc -std=c99 -I./include/ -o example example.c example_test_suite.c -lm
 
 It can also be used with a python environment in the following manner:
 
