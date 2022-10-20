@@ -10,7 +10,7 @@ https://github.com/f0uriest/keras2c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "k2c_include.h"
+#include "k2c_declarations.h"
 
 
 /**
@@ -25,9 +25,9 @@ https://github.com/f0uriest/keras2c
  * :param outcols: number of cols of C and B.
  * :param innderdim: number of cols of A and rows of B
  */
-void k2c_matmul(float * C, const float * A, const float * B, const size_t outrows,
+void k2c_matmul(k2c_float * C, const k2c_float * A, const k2c_float * B, const size_t outrows,
                 const size_t outcols, const size_t innerdim) {
-
+                    
     // make sure output is empty
     memset(C, 0, outrows*outcols*sizeof(C[0]));
 
@@ -57,9 +57,9 @@ void k2c_matmul(float * C, const float * A, const float * B, const size_t outrow
  * :param outcols: number of cols of C, B and d.
  * :param innderdim: number of cols of A and rows of B
  */
-void k2c_affine_matmul(float * C, const float * A, const float * B, const float * d,
+void k2c_affine_matmul(k2c_float * C, const k2c_float * A, const k2c_float * B, const k2c_float * d,
                        const size_t outrows,const size_t outcols, const size_t innerdim) {
-
+    
     // make sure output is empty
     memset(C, 0, outrows*outcols*sizeof(C[0]));
 
@@ -130,7 +130,7 @@ void k2c_idx2sub(const size_t idx, size_t * sub, const size_t * shape, const siz
  * :param fwork: array of working space, size(fwork) = size(A) + size(B)
  */
 void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size_t * axesA,
-             const size_t * axesB, const size_t naxes, const int normalize, float * fwork) {
+             const size_t * axesB, const size_t naxes, const int normalize, k2c_float * fwork) {
 
     size_t permA[K2C_MAX_NDIM];
     size_t permB[K2C_MAX_NDIM];
@@ -145,8 +145,8 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
     size_t newshpB[K2C_MAX_NDIM];
     const size_t ndimA = A->ndim;
     const size_t ndimB = B->ndim;
-    float *reshapeA = &fwork[0];   // temp working storage
-    float *reshapeB = &fwork[A->numel];
+    k2c_float *reshapeA = &fwork[0];   // temp working storage
+    k2c_float *reshapeB = &fwork[A->numel];
     size_t Asub[K2C_MAX_NDIM];
     size_t Bsub[K2C_MAX_NDIM];
     // find which axes are free (ie, not being summed over)
@@ -232,8 +232,8 @@ void k2c_dot(k2c_tensor* C, const k2c_tensor* A, const k2c_tensor* B, const size
 
     if (normalize) {
 
-        float sum;
-        float inorm;
+        k2c_float sum;
+        k2c_float inorm;
         for (size_t i=0; i<free_axesA; ++i) {
             sum = 0;
             for (size_t j=0; j<prod_axesA; ++j) {
@@ -294,7 +294,7 @@ void k2c_flip(k2c_tensor *A, const size_t axis) {
     const size_t step = 1;
     size_t k = 0;
     size_t idx = 0;
-    float temp;
+    k2c_float temp;
 
     size_t reduced_size = 1;
     for (size_t i=axis; i<ndim; ++i) {
@@ -328,8 +328,8 @@ void k2c_flip(k2c_tensor *A, const size_t axis) {
  * :param array_size: how many values to read from the file.
  * :return: pointer to allocated array.
  */
-float* k2c_read_array(const char* filename, const size_t array_size) {
-    float* ptr = (float*) malloc(array_size * sizeof(float));
+k2c_float* k2c_read_array(const char* filename, const size_t array_size) {
+    k2c_float* ptr = (k2c_float*) malloc(array_size * sizeof(k2c_float));
     if (!ptr) {
         printf("cannot allocate memory %s \n", filename);
         exit(-1);
@@ -343,7 +343,10 @@ float* k2c_read_array(const char* filename, const size_t array_size) {
         exit(-1);
     }
     while((!feof(finp)) && (ctr < array_size)) {
-        foo = fscanf(finp, "%f,", &ptr[ctr++]);
+        float dummy;
+        foo = fscanf(finp, "%f,", &dummy);
+        ptr[ctr] = dummy;
+        ctr++;
     }
     fclose(finp);
     return ptr;

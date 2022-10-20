@@ -9,7 +9,7 @@ https://github.com/f0uriest/keras2c
 
 #include <math.h>
 #include <stdio.h>
-#include "k2c_include.h"
+#include "k2c_declarations.h"
 
 
 /**
@@ -19,10 +19,9 @@ https://github.com/f0uriest/keras2c
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_linear_func(float * x, const size_t size) {
+void k2c_linear(k2c_float * x, const size_t size) {
 
 }
-k2c_activationType * k2c_linear = k2c_linear_func;
 
 
 /**
@@ -32,13 +31,12 @@ k2c_activationType * k2c_linear = k2c_linear_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_exponential_func(float * x, const size_t size) {
+void k2c_exponential(k2c_float * x, const size_t size) {
 
     for (size_t i=0; i<size; ++i) {
         x[i] = expf(x[i]);
     }
 }
-k2c_activationType * k2c_exponential = k2c_exponential_func;
 
 
 /**
@@ -48,7 +46,7 @@ k2c_activationType * k2c_exponential = k2c_exponential_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_relu_func(float * x, const size_t size) {
+void k2c_relu(k2c_float * x, const size_t size) {
 
     for (size_t i=0; i < size; ++i) {
         if (x[i] <= 0.0f) {
@@ -56,7 +54,6 @@ void k2c_relu_func(float * x, const size_t size) {
         }
     }
 }
-k2c_activationType * k2c_relu = k2c_relu_func;
 
 
 /**
@@ -68,7 +65,7 @@ k2c_activationType * k2c_relu = k2c_relu_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_hard_sigmoid_func(float * x, const size_t size) {
+void k2c_hard_sigmoid(k2c_float * x, const size_t size) {
 
     for (size_t i=0; i < size; ++i) {
         if (x[i] <= -2.5f) {
@@ -82,7 +79,6 @@ void k2c_hard_sigmoid_func(float * x, const size_t size) {
         }
     }
 }
-k2c_activationType * k2c_hard_sigmoid = k2c_hard_sigmoid_func;
 
 
 /**
@@ -92,13 +88,12 @@ k2c_activationType * k2c_hard_sigmoid = k2c_hard_sigmoid_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_tanh_func(float * x, const size_t size) {
+void k2c_tanh(k2c_float * x, const size_t size) {
 
     for (size_t i=0; i<size; ++i) {
         x[i] = tanhf(x[i]);
     }
 }
-k2c_activationType * k2c_tanh = k2c_tanh_func;
 
 
 /**
@@ -108,13 +103,12 @@ k2c_activationType * k2c_tanh = k2c_tanh_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_sigmoid_func(float * x, const size_t size) {
+void k2c_sigmoid(k2c_float * x, const size_t size) {
 
     for (size_t i=0; i < size; ++i) {
         x[i] = 1/(1+expf(-x[i]));
     }
 }
-k2c_activationType * k2c_sigmoid = k2c_sigmoid_func;
 
 
 /**
@@ -125,10 +119,10 @@ k2c_activationType * k2c_sigmoid = k2c_sigmoid_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_softmax_func(float * x, const size_t size) {
+void k2c_softmax(k2c_float * x, const size_t size) {
 
-    float xmax = x[0];
-    float sum = 0;
+    k2c_float xmax = x[0];
+    k2c_float sum = 0;
     for (size_t i=0; i < size; ++i) {
         if (x[i]>xmax) {
             xmax = x[i];
@@ -148,7 +142,6 @@ void k2c_softmax_func(float * x, const size_t size) {
         x[i] = x[i]*sum;
     }
 }
-k2c_activationType * k2c_softmax = k2c_softmax_func;
 
 
 /**
@@ -158,13 +151,12 @@ k2c_activationType * k2c_softmax = k2c_softmax_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_softplus_func(float * x, const size_t size) {
+void k2c_softplus(k2c_float * x, const size_t size) {
 
     for (size_t i=0; i < size; ++i) {
         x[i] = log1pf(expf(x[i]));
     }
 }
-k2c_activationType * k2c_softplus = k2c_softplus_func;
 
 
 /**
@@ -174,13 +166,12 @@ k2c_activationType * k2c_softplus = k2c_softplus_func;
  * :param x: array of input values. Gets overwritten by output.
  * :param size: length of input array.
  */
-void k2c_softsign_func(float * x, const size_t size) {
+void k2c_softsign(k2c_float * x, const size_t size) {
 
     for (size_t i=0; i < size; ++i) {
         x[i] = x[i]/(1.0f + fabsf(x[i]));
     }
 }
-k2c_activationType * k2c_softsign = k2c_softsign_func;
 
 
 /**
@@ -193,7 +184,7 @@ k2c_activationType * k2c_softsign = k2c_softsign_func;
  * :param size: length of input array.
  * :param alpha: slope of negative portion of activation curve.
  */
-void k2c_LeakyReLU(float * x, const size_t size, const float alpha) {
+void k2c_LeakyReLU(k2c_float * x, const size_t size, const k2c_float alpha) {
 
     for (size_t i=0; i<size; ++i) {
         if (x[i]<0) {
@@ -214,7 +205,7 @@ void k2c_LeakyReLU(float * x, const size_t size, const float alpha) {
  * :param size: length of input array.
  * :param alpha: slope of negative portion of activation curve for each unit.
  */
-void k2c_PReLU(float * x, const size_t size, const float * alpha) {
+void k2c_PReLU(k2c_float * x, const size_t size, const k2c_float * alpha) {
 
     for (size_t i=0; i<size; ++i) {
         if (x[i]<0.0f) {
@@ -233,7 +224,7 @@ void k2c_PReLU(float * x, const size_t size, const float * alpha) {
  * :param size: length of input array.
  * :param alpha: slope of negative portion of activation curve.
  */
-void k2c_ELU(float * x, const size_t size, const float alpha) {
+void k2c_ELU(k2c_float * x, const size_t size, const k2c_float alpha) {
 
     for (size_t i=0; i < size; ++i) {
         if (x[i] <= 0.0f) {
@@ -252,7 +243,7 @@ void k2c_ELU(float * x, const size_t size, const float alpha) {
  * :param size: length of input array.
  * :param theta: threshold for activation.
  */
-void k2c_ThresholdedReLU(float * x, const size_t size, const float theta) {
+void k2c_ThresholdedReLU(k2c_float * x, const size_t size, const k2c_float theta) {
 
     for (size_t i=0; i<size; ++i) {
         if (x[i]<= theta) {
@@ -273,8 +264,8 @@ void k2c_ThresholdedReLU(float * x, const size_t size, const float theta) {
  * :param alpha: slope of negative portion of activation curve.
  * :param theta: threshold for activation.
  */
-void k2c_ReLU(float * x, const size_t size, const float max_value,
-              const float alpha, const float theta) {
+void k2c_ReLU(k2c_float * x, const size_t size, const k2c_float max_value,
+              const k2c_float alpha, const k2c_float theta) {
 
     for (size_t i=0; i<size; ++i) {
         if (x[i] >= max_value) {

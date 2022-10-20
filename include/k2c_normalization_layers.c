@@ -9,7 +9,7 @@ https://github.com/f0uriest/keras2c
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include "k2c_include.h"
+#include "k2c_declarations.h"
 
 
 /**
@@ -36,9 +36,9 @@ void k2c_batch_norm(k2c_tensor* outputs, const k2c_tensor* inputs, const k2c_ten
 
     for (size_t i=0; i<inputs->numel; ++i) {
         size_t idx = (i/offset)%step;
-        outputs->array[i] = (inputs->array[i] - mean->array[idx]) /
-                            stdev->array[idx] *
-                            gamma->array[idx] +
+        outputs->array[i] = (float)(inputs->array[i] - mean->array[idx]) /
+                            (float)stdev->array[idx] *
+                            (float)gamma->array[idx] +
                             beta->array[idx];
     }
 }

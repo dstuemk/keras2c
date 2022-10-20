@@ -6,6 +6,8 @@ https://github.com/f0uriest/keras2c
 
 Helper functions to get input and output names for each layer etc.
 """
+# imports
+import numpy as np
 
 __author__ = "Rory Conlin"
 __copyright__ = "Copyright 2020, Rory Conlin"
@@ -13,6 +15,23 @@ __license__ = "MIT"
 __maintainer__ = "Rory Conlin, https://github.com/f0uriest/keras2c"
 __email__ = "wconlin@princeton.edu"
 
+def get_input_shapes(model):
+    """Generates nested C-Array with input shapes
+
+    Args:
+        model (keras Model): Model you want the input shape of
+
+    Returns:
+        shapes_arr (str): C-Array literal, e.g. "{ {1,1,40,1,1}, {1,1,20,1,1}, }"
+        num_inputs (int): Number of inputs
+    """
+    shapes_arr = "{\n"
+    for inp in model.inputs:
+        shapes_arr += "{ " + \
+             ",".join( [ str(el or 0) for el in np.pad(inp.shape,(0,5 - len(inp.shape))) ] ) + \
+                 " },"
+    shapes_arr += "\n}"
+    return shapes_arr, len(model.inputs)
 
 def layer_type(layer):
     """Gets the type of a layer

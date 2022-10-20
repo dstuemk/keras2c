@@ -32,6 +32,8 @@ def parse_args(args):
                         help="""Use dynamic memory for large arrays. Weights will be saved to .csv files that will be loaded at runtime""")
     parser.add_argument("-t", "--num_tests", type=int,
                         help="""Number of tests to generate. Default is 10""", metavar='')
+    parser.add_argument("--dtype", type=str, help="""Specify data type for model weights""",
+                        default="float")
 
     return parser.parse_args(args)
 
@@ -48,7 +50,7 @@ def main(args=sys.argv[1:]):
     else:
         num_tests = 10
 
-    k2c(args.model_path, args.function_name, malloc, num_tests)
+    k2c(args.model_path, args.function_name, args.dtype, malloc, num_tests)
 
 
 if __name__ == '__main__':

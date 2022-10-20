@@ -69,7 +69,7 @@ class Weights2C():
             return s, to_malloc
         else:
             count = 0
-            s = 'float ' + name + '_array[' + str(size) + '] = '
+            s = 'k2c_float ' + name + '_array[' + str(size) + '] = '
             if np.max(np.abs(temp)) < 1e-16:
                 s += '{' + str(0) + '}; \n'
             else:
@@ -128,7 +128,7 @@ class Weights2C():
             s = 'static struct ' + self.function_name + '_static_vars \n'
             s += '{ \n'
             for k, v in self.static_vars.items():
-                s += 'float ' + k + '[' + str(v) + ']; \n'
+                s += 'k2c_float ' + k + '[' + str(v) + ']; \n'
             s += '} ' + self.function_name + '_states; \n'
         else:
             s = ''
@@ -257,7 +257,7 @@ class Weights2C():
     def _write_weights_LSTM(self, layer):
         units = layer.get_config()['units']
         self._write_outputs(layer)
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
                            '_fwork[' + str(8*units) + '] = {0}; \n'
         self.stack_vars += 'int ' + layer.name + '_go_backwards = ' + \
             str(int(layer.get_config()['go_backwards'])) + ';\n'
@@ -265,11 +265,11 @@ class Weights2C():
             str(int(layer.get_config()['return_sequences'])) + ';\n'
         if layer.get_config()['stateful']:
             self.static_vars.update({layer.name + '_state': 2*units})
-            self.stack_vars += 'float * ' + layer.name + '_state = ' + \
+            self.stack_vars += 'k2c_float * ' + layer.name + '_state = ' + \
                 self.function_name + '_states.' + \
                 layer.name + '_state; \n'
         else:
-            self.stack_vars += 'float ' + layer.name + \
+            self.stack_vars += 'k2c_float ' + layer.name + \
                                '_state[' + str(2*units) + '] = {0}; \n'
 
         weights = layer.get_weights()
@@ -291,7 +291,7 @@ class Weights2C():
     def _write_weights_GRU(self, layer):
         units = layer.get_config()['units']
         self._write_outputs(layer)
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
             '_fwork[' + str(6*units) + '] = {0}; \n'
         self.stack_vars += 'int ' + layer.name + '_reset_after = ' + \
             str(int(layer.get_config()['reset_after'])) + ';\n'
@@ -301,11 +301,11 @@ class Weights2C():
             str(int(layer.get_config()['return_sequences'])) + ';\n'
         if layer.get_config()['stateful']:
             self.static_vars.update({layer.name + '_state': units})
-            self.stack_vars += 'float * ' + layer.name + '_state = ' + \
+            self.stack_vars += 'k2c_float * ' + layer.name + '_state = ' + \
                 self.function_name + '_states.' + \
                 layer.name + '_state; \n'
         else:
-            self.stack_vars += 'float ' + layer.name + \
+            self.stack_vars += 'k2c_float ' + layer.name + \
                 '_state[' + str(units) + '] = {0}; \n'
 
         weights = layer.get_weights()
@@ -339,15 +339,15 @@ class Weights2C():
             str(int(layer.get_config()['go_backwards'])) + ';\n'
         self.stack_vars += 'int ' + layer.name + '_return_sequences = ' + \
             str(int(layer.get_config()['return_sequences'])) + ';\n'
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
             '_fwork[' + str(2*units) + '] = {0}; \n'
         if layer.get_config()['stateful']:
             self.static_vars.update({layer.name + '_state': units})
-            self.stack_vars += 'float * ' + layer.name + '_state = ' + \
+            self.stack_vars += 'k2c_float * ' + layer.name + '_state = ' + \
                 self.function_name + '_states.' + \
                 layer.name + '_state; \n'
         else:
-            self.stack_vars += 'float ' + layer.name + \
+            self.stack_vars += 'k2c_float ' + layer.name + \
                 '_state[' + str(units) + '] = {0}; \n'
 
         weights = layer.get_weights()
@@ -374,7 +374,7 @@ class Weights2C():
 
         self._write_weights_array2c(A, layer.name + '_kernel')
         self._write_weights_array2c(b, layer.name + '_bias')
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
             '_fwork[' + str(np.prod(layer.input_shape[1:]) +
                             np.prod(A.shape)) + '] = {0}; \n'
         self.stack_vars += '\n \n'
@@ -398,7 +398,7 @@ class Weights2C():
                                         layer.name + '_padded_input')
             self.stack_vars += 'size_t ' + layer.name + '_pad[2] = {' + str(pad_top) + ','\
                 + str(pad_bottom) + '}; \n'
-            self.stack_vars += 'float ' + layer.name + '_fill = 0.0f; \n'
+            self.stack_vars += 'k2c_float ' + layer.name + '_fill = 0.0f; \n'
         elif padding == 'same':
             pad_along_height = dilation*(kernel_size-1)
             pad_top = int(pad_along_height // 2)
@@ -407,7 +407,7 @@ class Weights2C():
                                         layer.name + '_padded_input')
             self.stack_vars += 'size_t ' + layer.name + '_pad[2] = {' + str(pad_top) + ','\
                 + str(pad_bottom) + '}; \n'
-            self.stack_vars += 'float ' + layer.name + '_fill = 0.0f; \n'
+            self.stack_vars += 'k2c_float ' + layer.name + '_fill = 0.0f; \n'
 
         weights = layer.get_weights()
         kernel = weights[0]
@@ -445,7 +445,7 @@ class Weights2C():
                                         '_padded_input')
             self.stack_vars += 'size_t ' + layer.name + \
                 '_pad[4] = {' + ','.join([str(i) for i in pad]) + '}; \n'
-            self.stack_vars += 'float ' + layer.name + '_fill = 0.0f; \n'
+            self.stack_vars += 'k2c_float ' + layer.name + '_fill = 0.0f; \n'
 
         weights = layer.get_weights()
         kernel = weights[0]
@@ -489,7 +489,7 @@ class Weights2C():
                                         '_padded_input')
             self.stack_vars += 'size_t ' + layer.name + \
                 '_pad[6] = {' + ','.join([str(i) for i in pad]) + '}; \n'
-            self.stack_vars += 'float ' + layer.name + '_fill = 0.0f; \n'
+            self.stack_vars += 'k2c_float ' + layer.name + '_fill = 0.0f; \n'
 
         weights = layer.get_weights()
         kernel = weights[0]
@@ -527,7 +527,7 @@ class Weights2C():
                                         layer.name + '_padded_input')
             self.stack_vars += 'size_t ' + layer.name + '_pad[2] = {' + str(pad_top) + ','\
                 + str(pad_bottom) + '}; \n'
-            self.stack_vars += 'float ' + layer.name + '_fill = -HUGE_VALF; \n'
+            self.stack_vars += 'k2c_float ' + layer.name + '_fill = -HUGE_VALF; \n'
         self.stack_vars += '\n\n'
 
     def _write_weights_MaxPooling2D(self, layer):
@@ -564,7 +564,7 @@ class Weights2C():
                                         '_padded_input')
             self.stack_vars += 'size_t ' + layer.name + \
                 '_pad[4] = {' + ','.join([str(i) for i in pad]) + '}; \n'
-            self.stack_vars += 'float ' + layer.name + '_fill = -HUGE_VALF; \n'
+            self.stack_vars += 'k2c_float ' + layer.name + '_fill = -HUGE_VALF; \n'
         self.stack_vars += '\n\n'
 
     def _write_weights_GlobalMaxPooling1D(self, layer):
@@ -635,19 +635,19 @@ class Weights2C():
 
     def _write_weights_ELU(self, layer):
         alpha = layer.get_config()['alpha']
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
             '_alpha = ' + str(alpha) + '; \n'
         self.stack_vars += '\n\n'
 
     def _write_weights_LeakyReLU(self, layer):
         alpha = layer.get_config()['alpha']
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
             '_alpha = ' + str(alpha) + '; \n'
         self.stack_vars += '\n\n'
 
     def _write_weights_ThresholdedReLU(self, layer):
         theta = layer.get_config()['theta']
-        self.stack_vars = 'float ' + layer.name + \
+        self.stack_vars = 'k2c_float ' + layer.name + \
             '_theta = ' + str(theta) + '; \n'
         self.stack_vars += '\n\n'
 
@@ -657,11 +657,11 @@ class Weights2C():
         threshold = layer.get_config()['threshold']
         if max_value is None:
             max_value = 'HUGE_VALF'
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
             '_max_value = ' + str(max_value) + '; \n'
-        self.stack_vars += 'float ' + layer.name + '_negative_slope = ' + \
+        self.stack_vars += 'k2c_float ' + layer.name + '_negative_slope = ' + \
             str(negative_slope) + '; \n'
-        self.stack_vars += 'float ' + layer.name + \
+        self.stack_vars += 'k2c_float ' + layer.name + \
             '_threshold = ' + str(threshold) + '; \n'
         self.stack_vars += '\n\n'
 
@@ -708,7 +708,7 @@ class Weights2C():
         self.stack_vars += 'size_t ' + nm + \
             '_axesB[1] = {' + str(axes[1]) + '}; \n'
         self.stack_vars += 'size_t ' + nm + '_naxes = 1; \n'
-        self.stack_vars += 'float ' + nm + \
+        self.stack_vars += 'k2c_float ' + nm + \
             '_fwork[' + str(work_size) + '] = {0}; \n'
         self.stack_vars += 'int ' + nm + '_normalize = ' + \
             str(int(layer.get_config()['normalize'])) + '; \n'
@@ -786,7 +786,7 @@ class Weights2C():
         pad_bottom = layer.get_config()['padding'][1]
         self.stack_vars += 'size_t ' + nm + '_pad[2] = {' + str(pad_top) + ','\
             + str(pad_bottom) + '}; \n'
-        self.stack_vars += 'float ' + nm + '_fill = 0.0f; \n'
+        self.stack_vars += 'k2c_float ' + nm + '_fill = 0.0f; \n'
         self.stack_vars += '\n\n'
 
     def _write_weights_ZeroPadding2D(self, layer):
@@ -799,7 +799,7 @@ class Weights2C():
         self.stack_vars += 'size_t ' + nm + '_pad[4] = {' + str(pad_top) + ','\
             + str(pad_bottom) + ',' + str(pad_left) + \
             ',' + str(pad_right) + '}; \n'
-        self.stack_vars += 'float ' + nm + '_fill = 0.0f; \n'
+        self.stack_vars += 'k2c_float ' + nm + '_fill = 0.0f; \n'
         self.stack_vars += '\n\n'
 
     def _write_weights_ZeroPadding3D(self, layer):
@@ -814,7 +814,7 @@ class Weights2C():
         self.stack_vars += 'size_t ' + nm + '_pad[6] = {' + str(pad0) + ','\
             + str(pad1) + ',' + str(pad2) + ',' + str(pad3) + \
             ',' + str(pad4) + ',' + str(pad5) + '}; \n'
-        self.stack_vars += 'float ' + nm + '_fill = 0.0f; \n'
+        self.stack_vars += 'k2c_float ' + nm + '_fill = 0.0f; \n'
         self.stack_vars += '\n\n'
 
     def _write_weights_ActivityRegularization(self, layer):

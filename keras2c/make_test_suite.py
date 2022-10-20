@@ -38,7 +38,7 @@ def make_test_suite(model, function_name, malloc_vars, num_tests=10, stateful=Fa
         num_tests (int): number of tests to generate
         stateful (bool): whether the model contains layers that maintain state between calls.
         verbose (bool): whether to print output
-        tol (float): tolerance for passing tests. Tests pass if the maximum error over
+        tol (k2c_float): tolerance for passing tests. Tests pass if the maximum error over
             all elements between the true output and generated code output is less than tol.
 
     Returns:
@@ -68,9 +68,9 @@ def make_test_suite(model, function_name, malloc_vars, num_tests=10, stateful=Fa
     s = '#include <stdio.h> \n'
     s += '#include <math.h> \n'
     s += '#include <time.h> \n'
-    s += '#include "./include/k2c_include.h" \n'
     s += '#include "' + function_name + '.h" \n\n'
-    s += 'float maxabs(k2c_tensor *tensor1, k2c_tensor *tensor2);\n'
+    #s += '#include "./include/k2c_include.h" \n'
+    s += 'k2c_float maxabs(k2c_tensor *tensor1, k2c_tensor *tensor2);\n'
     s += 'struct timeval GetTimeStamp(); \n \n'
     file.write(s)
     for i in range(num_tests):
@@ -110,11 +110,11 @@ def make_test_suite(model, function_name, malloc_vars, num_tests=10, stateful=Fa
     s = 'int main(){\n'
     file.write(s)
     
-    s = ' float errors[' + str(num_tests*num_outputs) + '];\n'
+    s = ' k2c_float errors[' + str(num_tests*num_outputs) + '];\n'
     s += ' size_t num_tests = ' + str(num_tests) + '; \n'
     s += 'size_t num_outputs = ' + str(num_outputs) + '; \n'
     for var in malloc_vars:
-        s += 'float* ' + var + '; \n'
+        s += 'k2c_float* ' + var + '; \n'
 
     init_sig = function_name + '_initialize(' + \
         ','.join(['&' + var for var in malloc_vars]) + '); \n'
@@ -149,7 +149,7 @@ def make_test_suite(model, function_name, malloc_vars, num_tests=10, stateful=Fa
                 str(i+1) + ',&c_' + \
                 model_outputs[j] + '_test' + str(i+1) + '); \n'
             file.write(s)
-    s = 'float maxerror = errors[0]; \n'
+    s = 'k2c_float maxerror = errors[0]; \n'
     s += 'for(size_t i=1; i< num_tests*num_outputs;i++){ \n'
     s += 'if (errors[i] > maxerror) { \n'
     s += 'maxerror = errors[i];}} \n'
@@ -166,9 +166,9 @@ def make_test_suite(model, function_name, malloc_vars, num_tests=10, stateful=Fa
     s += 'return 1;} \n'
     s += 'return 0;\n} \n\n'
     file.write(s)
-    s = """float maxabs(k2c_tensor *tensor1, k2c_tensor *tensor2){ \n
-    float x = 0; \n
-    float y = 0; \n
+    s = """k2c_float maxabs(k2c_tensor *tensor1, k2c_tensor *tensor2){ \n
+    k2c_float x = 0; \n
+    k2c_float y = 0; \n
     for(size_t i=0; i<tensor1->numel; i++){\n
     y = fabsf(tensor1->array[i]-tensor2->array[i]);
     if (y>x) {x=y;}}

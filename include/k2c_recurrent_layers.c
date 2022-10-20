@@ -8,7 +8,7 @@ https://github.com/f0uriest/keras2c
 
 #include <math.h>
 #include <stdio.h>
-#include "k2c_include.h"
+#include "k2c_declarations.h"
 
 
 /**
@@ -24,8 +24,8 @@ https://github.com/f0uriest/keras2c
  * :param recurrent_activation: activation function to apply to internal state.
  * :param output_activation: activation function to apply to output.
  */
-void k2c_lstmcell(float * state, const float * input, const k2c_tensor* kernel,
-                  const k2c_tensor* recurrent_kernel, const k2c_tensor* bias, float * fwork,
+void k2c_lstmcell(k2c_float * state, const k2c_float * input, const k2c_tensor* kernel,
+                  const k2c_tensor* recurrent_kernel, const k2c_tensor* bias, k2c_float * fwork,
                   k2c_activationType *recurrent_activation,
                   k2c_activationType *output_activation) {
 
@@ -33,29 +33,29 @@ void k2c_lstmcell(float * state, const float * input, const k2c_tensor* kernel,
     const size_t units = recurrent_kernel->shape[1];
     const size_t in_width = kernel->shape[0]/4;
 
-    float *h_tm1 = &state[0];  // previous memory state
-    float *c_tm1 = &state[units];  // previous carry state
+    k2c_float *h_tm1 = &state[0];  // previous memory state
+    k2c_float *c_tm1 = &state[units];  // previous carry state
     const size_t outrows = 1;
-    const float * const Wi = &kernel->array[0];
-    const float * const Wf = &kernel->array[in_width*units];
-    const float * const Wc = &kernel->array[2*in_width*units];
-    const float * const Wo = &kernel->array[3*in_width*units];
-    const float * const Ui = &recurrent_kernel->array[0];
-    const float * const Uf = &recurrent_kernel->array[units*units];
-    const float * const Uc = &recurrent_kernel->array[2*units*units];
-    const float * const Uo = &recurrent_kernel->array[3*units*units];
-    const float * const bi = &bias->array[0];
-    const float * const bf = &bias->array[units];
-    const float * const bc = &bias->array[2*units];
-    const float * const bo = &bias->array[3*units];
-    float *xi = &fwork[0];
-    float *xf = &fwork[units];
-    float *xc = &fwork[2*units];
-    float *xo = &fwork[3*units];
-    float *yi = &fwork[4*units];
-    float *yf = &fwork[5*units];
-    float *yc = &fwork[6*units];
-    float *yo = &fwork[7*units];
+    const k2c_float * const Wi = &kernel->array[0];
+    const k2c_float * const Wf = &kernel->array[in_width*units];
+    const k2c_float * const Wc = &kernel->array[2*in_width*units];
+    const k2c_float * const Wo = &kernel->array[3*in_width*units];
+    const k2c_float * const Ui = &recurrent_kernel->array[0];
+    const k2c_float * const Uf = &recurrent_kernel->array[units*units];
+    const k2c_float * const Uc = &recurrent_kernel->array[2*units*units];
+    const k2c_float * const Uo = &recurrent_kernel->array[3*units*units];
+    const k2c_float * const bi = &bias->array[0];
+    const k2c_float * const bf = &bias->array[units];
+    const k2c_float * const bc = &bias->array[2*units];
+    const k2c_float * const bo = &bias->array[3*units];
+    k2c_float *xi = &fwork[0];
+    k2c_float *xf = &fwork[units];
+    k2c_float *xc = &fwork[2*units];
+    k2c_float *xo = &fwork[3*units];
+    k2c_float *yi = &fwork[4*units];
+    k2c_float *yf = &fwork[5*units];
+    k2c_float *yc = &fwork[6*units];
+    k2c_float *yo = &fwork[7*units];
 
 
     //xi = input*Wi + bi;
@@ -117,9 +117,9 @@ void k2c_lstmcell(float * state, const float * input, const k2c_tensor* kernel,
  * :param recurrent_activation: activation function to apply to internal state.
  * :param output_activation: activation function to apply to output.
  */
-void k2c_lstm(k2c_tensor* output, const k2c_tensor* input, float * state,
+void k2c_lstm(k2c_tensor* output, const k2c_tensor* input, k2c_float * state,
               const k2c_tensor* kernel, const k2c_tensor* recurrent_kernel,
-              const k2c_tensor* bias, float * fwork, const int go_backwards,
+              const k2c_tensor* bias, k2c_float * fwork, const int go_backwards,
               const int return_sequences, k2c_activationType *recurrent_activation,
               k2c_activationType *output_activation) {
 
@@ -169,16 +169,16 @@ void k2c_lstm(k2c_tensor* output, const k2c_tensor* input, float * state,
  * :param fwork: array[2*units] working storage.
  * :param output_activation: activation function to apply to output.
  */
-void k2c_simpleRNNcell(float * state, const float * input, const k2c_tensor* kernel,
+void k2c_simpleRNNcell(k2c_float * state, const k2c_float * input, const k2c_tensor* kernel,
                        const k2c_tensor* recurrent_kernel, const k2c_tensor* bias,
-                       float * fwork, k2c_activationType *output_activation) {
+                       k2c_float * fwork, k2c_activationType *output_activation) {
 
     const size_t units = recurrent_kernel->shape[1];
     const size_t in_width = kernel->shape[0];
 
     const size_t outrows = 1;
-    float *h1 = &fwork[0];
-    float *h2 = &fwork[units];
+    k2c_float *h1 = &fwork[0];
+    k2c_float *h2 = &fwork[units];
     // h1 = input*kernel+bias
     k2c_affine_matmul(h1,input,kernel->array,bias->array,outrows,units,in_width);
 
@@ -207,9 +207,9 @@ void k2c_simpleRNNcell(float * state, const float * input, const k2c_tensor* ker
  * :param return_sequences: whether to return the last output in the output sequence (0), or the full sequence (1).
  * :param output_activation: activation function to apply to output.
  */
-void k2c_simpleRNN(k2c_tensor* output, const k2c_tensor* input, float * state,
+void k2c_simpleRNN(k2c_tensor* output, const k2c_tensor* input, k2c_float * state,
                    const k2c_tensor* kernel, const k2c_tensor* recurrent_kernel,
-                   const k2c_tensor* bias, float * fwork, const int go_backwards,
+                   const k2c_tensor* bias, k2c_float * fwork, const int go_backwards,
                    const int return_sequences, k2c_activationType *output_activation) {
 
     const size_t in_width = input->shape[1];
@@ -260,34 +260,34 @@ void k2c_simpleRNN(k2c_tensor* output, const k2c_tensor* input, float * state,
  * :param recurrent_activation: activation function to apply to internal state.
  * :param output_activation: activation function to apply to output.
  */
-void k2c_grucell(float * state, const float * input, const k2c_tensor* kernel,
-                 const k2c_tensor* recurrent_kernel, const k2c_tensor* bias, float * fwork,
+void k2c_grucell(k2c_float * state, const k2c_float * input, const k2c_tensor* kernel,
+                 const k2c_tensor* recurrent_kernel, const k2c_tensor* bias, k2c_float * fwork,
                  const int reset_after, k2c_activationType *recurrent_activation,
                  k2c_activationType *output_activation) {
 
     const size_t units = recurrent_kernel->shape[1];
     const size_t in_width = kernel->shape[0]/3;
 
-    float *h_tm1 = &state[0];
+    k2c_float *h_tm1 = &state[0];
     const size_t outrows = 1;
-    const float * const Wz = &kernel->array[0];
-    const float * const Wr = &kernel->array[in_width*units];
-    const float * const Wh = &kernel->array[2*in_width*units];
-    const float * const Uz = &recurrent_kernel->array[0];
-    const float * const Ur = &recurrent_kernel->array[units*units];
-    const float * const Uh = &recurrent_kernel->array[2*units*units];
-    const float * const bz = &bias->array[0];
-    const float * const br = &bias->array[units];
-    const float * const bh = &bias->array[2*units];
-    const float * const rbz = &bias->array[3*units];
-    const float * const rbr = &bias->array[4*units];
-    const float * const rbh = &bias->array[5*units];
-    float *xz = &fwork[0];
-    float *xr = &fwork[units];
-    float *xh = &fwork[2*units];
-    float *yz = &fwork[3*units];
-    float *yr = &fwork[4*units];
-    float *yh = &fwork[5*units];
+    const k2c_float * const Wz = &kernel->array[0];
+    const k2c_float * const Wr = &kernel->array[in_width*units];
+    const k2c_float * const Wh = &kernel->array[2*in_width*units];
+    const k2c_float * const Uz = &recurrent_kernel->array[0];
+    const k2c_float * const Ur = &recurrent_kernel->array[units*units];
+    const k2c_float * const Uh = &recurrent_kernel->array[2*units*units];
+    const k2c_float * const bz = &bias->array[0];
+    const k2c_float * const br = &bias->array[units];
+    const k2c_float * const bh = &bias->array[2*units];
+    const k2c_float * const rbz = &bias->array[3*units];
+    const k2c_float * const rbr = &bias->array[4*units];
+    const k2c_float * const rbh = &bias->array[5*units];
+    k2c_float *xz = &fwork[0];
+    k2c_float *xr = &fwork[units];
+    k2c_float *xh = &fwork[2*units];
+    k2c_float *yz = &fwork[3*units];
+    k2c_float *yr = &fwork[4*units];
+    k2c_float *yh = &fwork[5*units];
 
     //     x_z = input*kernel_z + input_bias_z
     k2c_affine_matmul(xz, input, Wz, bz, outrows, units, in_width);
@@ -359,9 +359,9 @@ void k2c_grucell(float * state, const float * input, const k2c_tensor* kernel,
  * :param recurrent_activation: activation function to apply to internal state.
  * :param output_activation: activation function to apply to output.
  */
-void k2c_gru(k2c_tensor* output, const k2c_tensor* input, float * state,
+void k2c_gru(k2c_tensor* output, const k2c_tensor* input, k2c_float * state,
              const k2c_tensor* kernel, const k2c_tensor* recurrent_kernel,
-             const k2c_tensor* bias, float * fwork, const int reset_after,
+             const k2c_tensor* bias, k2c_float * fwork, const int reset_after,
              const int go_backwards, const int return_sequences,
              k2c_activationType *recurrent_activation,
              k2c_activationType *output_activation) {

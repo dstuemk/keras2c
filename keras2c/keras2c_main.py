@@ -11,7 +11,7 @@ Converts keras model to C code
 from keras2c.layer2c import Layers2C
 from keras2c.weights2c import Weights2C
 from keras2c.io_parsing import layer_type, get_all_io_names, get_layer_io_names, \
-    get_model_io_names, flatten
+    get_model_io_names, flatten, get_input_shapes
 from keras2c.check_model import check_model
 from keras2c.make_test_suite import make_test_suite
 import numpy as np
@@ -28,7 +28,7 @@ __maintainer__ = "Rory Conlin, https://github.com/f0uriest/keras2c"
 __email__ = "wconlin@princeton.edu"
 
 
-def model2c(model, function_name, malloc=False, verbose=True):
+def model2c(model, function_name, dtype, malloc=False, verbose=True):
     """Generates C code for model
 
     Writes main function definition to "function_name.c" and a public header 
@@ -48,9 +48,14 @@ def model2c(model, function_name, malloc=False, verbose=True):
     model_inputs, model_outputs = get_model_io_names(model)
     includes = '#include <math.h> \n '
     includes += '#include <string.h> \n'
-    includes += '#include "./include/k2c_include.h" \n'
-    includes += '#include "./include/k2c_tensor_include.h" \n'
+    includes += '#include "./include/k2c_declarations.h" \n'
+    includes += '#include "./include/k2c_definitions.h" \n'
     includes += '\n \n'
+
+    shapes_arr_literal,num_inputs = get_input_shapes(model)
+    const_vars = 'const int ' + function_name + '_input_shapes'
+    const_vars += '[' + str(num_inputs) + '][5] = '
+    const_vars += shapes_arr_literal + "; \n\n"
 
     if verbose:
         print('Gathering Weights')
@@ -65,7 +70,7 @@ def model2c(model, function_name, malloc=False, verbose=True):
     function_signature += ', '.join(['k2c_tensor* ' +
                                      out_nm + '_output' for out_nm in model_outputs])
     if len(malloc_vars.keys()):
-        function_signature += ',' + ','.join(['float* ' +
+        function_signature += ',' + ','.join(['k2c_float* ' +
                                               key for key in malloc_vars.keys()])
     function_signature += ')'
 
@@ -74,6 +79,7 @@ def model2c(model, function_name, malloc=False, verbose=True):
     reset_sig, reset_fun = gen_function_reset(function_name)
 
     with open(function_name + '.c', 'x+') as source:
+        source.write(f"typedef {dtype} k2c_float; \n")
         source.write(includes)
         source.write(static_vars + '\n\n')
         source.write(function_signature)
@@ -88,7 +94,9 @@ def model2c(model, function_name, malloc=False, verbose=True):
 
     with open(function_name + '.h', 'x+') as header:
         header.write('#pragma once \n')
-        header.write('#include "./include/k2c_tensor_include.h" \n')
+        header.write(f"typedef {dtype} k2c_float; \n")
+        header.write('#include "./include/k2c_declarations.h" \n')
+        header.write(const_vars)
         header.write(function_signature + '; \n')
         header.write(init_sig + '; \n')
         header.write(term_sig + '; \n')
@@ -141,7 +149,7 @@ def gen_function_initialize(function_name, malloc_vars):
     """
 
     init_sig = 'void ' + function_name + '_initialize('
-    init_sig += ','.join(['float** ' +
+    init_sig += ','.join(['k2c_float** ' +
                           key + ' \n' for key in malloc_vars.keys()])
     init_sig += ')'
 
@@ -172,7 +180,7 @@ def gen_function_terminate(function_name, malloc_vars):
     """
 
     term_sig = 'void ' + function_name + '_terminate('
-    term_sig += ','.join(['float* ' +
+    term_sig += ','.join(['k2c_float* ' +
                           key for key in malloc_vars.keys()])
     term_sig += ')'
 
@@ -185,12 +193,13 @@ def gen_function_terminate(function_name, malloc_vars):
     return term_sig, term_fun
 
 
-def k2c(model, function_name, malloc=False, num_tests=10, verbose=True):
+def k2c(model, function_name, dtype, malloc=False, num_tests=10, verbose=True):
     """Converts keras model to C code and generates test suite
 
     Args:
         model (keras Model or str): model to convert or path to saved .h5 file
         function_name (str): name of main function
+        dtype (str): data type used to store weights, e.g. float or double
         malloc (bool): whether to allocate variables on the stack or heap
         num_tests (int): how many tests to generate in the test suite
         verbose (bool): whether to print progress
@@ -218,7 +227,7 @@ def k2c(model, function_name, malloc=False, num_tests=10, verbose=True):
         print('All checks passed')
 
     malloc_vars, stateful = model2c(
-        model, function_name, malloc, verbose)
+        model, function_name, dtype, malloc, verbose)
 
     s = 'Done \n'
     s += "C code is in '" + function_name + \

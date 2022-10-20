@@ -4,6 +4,7 @@
 *.o
 *.a
 *.out
+*.csv
 .ipynb_checkpoints/
 __pycache__/
 *.pdf
@@ -15,3 +16,4 @@ __pycache__/
 test___*
 docs/_build/*
 local/*
+venv/

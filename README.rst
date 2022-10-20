@@ -19,7 +19,7 @@ keras2c can be used from the command line:
 
 .. code-block:: bash
 
-    python -m keras2c [-h] [-m] [-t] model_path function_name
+    python -m keras2c [-h] [-m] [-t] --dtype {float,double,...} model_path function_name
 
     A library for converting the forward pass (inference) part of a keras model to
         a C function
@@ -27,6 +27,9 @@ keras2c can be used from the command line:
     positional arguments:
       model_path         File path to saved keras .h5 model file
       function_name      What to name the resulting C function
+    
+    keyword arguments:
+      --dtype            data type used to store weights, e.g. float or double
      
     optional arguments:
       -h, --help         show this help message and exit
@@ -40,7 +43,7 @@ It can also be used with a python environment in the following manner:
 .. code-block:: python
 
     from keras2c import k2c
-    k2c(model, function_name, malloc=False, num_tests=10, verbose=True)
+    k2c(model, function_name, dtype, malloc=False, num_tests=10, verbose=True)
 
 For more information, see `Installation <https://f0uriest.github.io/keras2c/installation.html>`_ and  `Usage <https://f0uriest.github.io/keras2c/usage.html>`_
 
